@@ -1,0 +1,24 @@
+import fs from 'fs';
+import path from 'path';
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  try {
+    // "website" klasöründe olduğundan dosya yolunu düzelt
+    const filePath = path.join(process.cwd(), 'website', 'data.json');
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ error: 'data.json bulunamadı: ' + filePath }, { status: 500 });
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    // endingTime alanını ISO formatına çevir
+    const keys = data.keys.map(k => ({
+      ...k,
+      endingTime: k.endingTime
+        ? k.endingTime.replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1')
+        : null
+    }));
+    return NextResponse.json({ keys });
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed to read keys data.' }, { status: 500 });
+  }
+}
